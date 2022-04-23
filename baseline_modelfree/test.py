@@ -38,14 +38,10 @@ Decoder = FCN()
 Decoder.load_state_dict(torch.load(args.renderer))
 
 def decode(x, canvas): # b * (10 + 3)
-    paths = []
     x = x.view(-1, 10 + 3)
-
-    for f in x:
-        bezierPath = BezierPath(f[:10], width=width)
-        paths.append(bezierPath.draw())
+    paths = np.array([BezierPath(f[:10], width=width).draw() for f in x])
     
-    stroke = 1 - torch.tensor(paths)
+    stroke = 1 - torch.from_numpy(paths)
     stroke = stroke.view(-1, width, width, 1)
     color_stroke = stroke * x[:, -3:].view(-1, 1, 1, 3)
     stroke = stroke.permute(0, 3, 1, 2)

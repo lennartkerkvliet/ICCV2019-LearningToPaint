@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from cairosvg import svg2png
 
 
 def normal(x, width):
@@ -30,7 +31,29 @@ class BezierPath:
             t = i * tmp
             x = (int)((1-t) * (1-t) * self.x0 + 2 * t * (1-t) * self.x1 + t * t * self.x2)
             y = (int)((1-t) * (1-t) * self.y0 + 2 * t * (1-t) * self.y1 + t * t * self.y2)
-            z = (int)((1-t) * self.z0 + t * self.z2)
-            w = (1-t) * self.w0 + t * self.w2
-            cv2.circle(canvas, (y, x), z, w, -1)
+            radius = (int)((1-t) * self.z0 + t * self.z2)
+            color = (1-t) * self.w0 + t * self.w2
+
+            cv2.circle(canvas, (y, x), radius, color, -1)
         return 1 - cv2.resize(canvas, dsize=(self.width, self.width))
+
+    def draw_svg(self):
+        svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(self.width * 2, self.width * 2)
+        tmp = 1. / 100
+        for i in range(100):
+            t = i * tmp
+            x = (int)((1-t) * (1-t) * self.x0 + 2 * t * (1-t) * self.x1 + t * t * self.x2)
+            y = (int)((1-t) * (1-t) * self.y0 + 2 * t * (1-t) * self.y1 + t * t * self.y2)
+            radius = (int)((1-t) * self.z0 + t * self.z2)
+
+            color = (1-t) * self.w0 + t * self.w2
+            fill = "rgb({}, {}, {})".format(color * 256, color * 256, color * 256)
+            svgstring += "<circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"{}\"/>".format(y, x, radius, fill)
+
+        svgstring += "</svg>"
+        image = svg2png(bytestring=svgstring, write_to=None)
+        nparr = np.frombuffer(image, np.uint8)
+        canvas = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
+
+        adjusted = (canvas / 256).astype('float32')
+        return 1 - cv2.resize(adjusted, dsize=(self.width, self.width))
