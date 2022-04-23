@@ -1,7 +1,10 @@
 *.pyc
 *.py~
+.ipynb_checkpoints/
 
 data/
+venv/
 *.pkl
 
 output/*
+.DS_Store

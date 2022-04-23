@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from DRL.actor import *
-from Renderer.stroke_gen import *
+from Renderer.bezierpath import BezierPath
 from Renderer.model import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,18 +38,26 @@ Decoder = FCN()
 Decoder.load_state_dict(torch.load(args.renderer))
 
 def decode(x, canvas): # b * (10 + 3)
+    paths = []
     x = x.view(-1, 10 + 3)
-    stroke = 1 - Decoder(x[:, :10])
+
+    for f in x:
+        bezierPath = BezierPath(f[:10], width=width)
+        paths.append(bezierPath.draw())
+    
+    stroke = 1 - torch.tensor(paths)
     stroke = stroke.view(-1, width, width, 1)
     color_stroke = stroke * x[:, -3:].view(-1, 1, 1, 3)
     stroke = stroke.permute(0, 3, 1, 2)
     color_stroke = color_stroke.permute(0, 3, 1, 2)
     stroke = stroke.view(-1, 5, 1, width, width)
     color_stroke = color_stroke.view(-1, 5, 3, width, width)
+
     res = []
     for i in range(5):
         canvas = canvas * (1 - stroke[:, i]) + color_stroke[:, i]
         res.append(canvas)
+
     return canvas, res
 
 def small2large(x):
