@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 from DRL.actor import *
 from Renderer.bezierpath import BezierPath
-from Renderer.render import render_paths
+from Renderer.render import render_paths, render_svg
 from Renderer.model import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -35,13 +35,11 @@ for i in range(width):
         coord[0, 1, i, j] = j / (width - 1.)
 coord = coord.to(device) # Coordconv
 
-Decoder = FCN()
-Decoder.load_state_dict(torch.load(args.renderer))
-
 def decode(x, canvas): # b * (10 + 3)
     x = x.view(-1, 10 + 3)
     paths = [BezierPath(f, width=width) for f in x]
-    return render_paths(paths, canvas, width)
+    canvas, res = render_paths(paths, canvas, width)
+    return canvas, res, paths
 
 def small2large(x):
     # (d * d, width, width) -> (d * width, d * width)    
@@ -90,10 +88,14 @@ def save_img(res, imgid, divide=False):
     output = cv2.resize(output, origin_shape)
     cv2.imwrite('output/generated' + str(imgid) + '.png', output)
 
+def save_svg(res, imgid):
+    file = open('output/vector_generated' + str(imgid) + '.svg', "w")
+    file.write(res)
+    file.close()
+
 actor = ResNet(9, 18, 65) # action_bundle = 5, 65 = 5 * 13
 actor.load_state_dict(torch.load(args.actor))
 actor = actor.to(device).eval()
-Decoder = Decoder.to(device).eval()
 
 canvas = torch.zeros([1, 3, width, width]).to(device)
 
@@ -112,11 +114,18 @@ os.system('mkdir output')
 with torch.no_grad():
     if args.divide != 1:
         args.max_step = args.max_step // 2
+
+    paths_res = []
     for i in range(args.max_step):
         stepnum = T * i / args.max_step
         actions = actor(torch.cat([canvas, img, stepnum, coord], 1))
-        canvas, res = decode(actions, canvas)
+        canvas, res, paths = decode(actions, canvas)
         print('canvas step {}, L2Loss = {}'.format(i, ((canvas - img) ** 2).mean()))
+
+        paths_res += paths
+        svgstring = render_svg(paths_res, width=width)
+        save_svg(svgstring, i)
+
         for j in range(5):
             save_img(res[j], args.imgid)
             args.imgid += 1
@@ -132,7 +141,7 @@ with torch.no_grad():
         for i in range(args.max_step):
             stepnum = T * i / args.max_step
             actions = actor(torch.cat([canvas, patch_img, stepnum, coord], 1))
-            canvas, res = decode(actions, canvas)
+            canvas, res, paths = decode(actions, canvas)
             print('divided canvas step {}, L2Loss = {}'.format(i, ((canvas - patch_img) ** 2).mean()))
             for j in range(5):
                 save_img(res[j], args.imgid, True)

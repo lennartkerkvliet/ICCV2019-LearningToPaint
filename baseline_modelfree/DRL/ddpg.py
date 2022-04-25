@@ -1,9 +1,12 @@
+from baseline_modelfree.Renderer import render
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam, SGD
 from Renderer.model import *
+from Renderer.render import render_paths
+from Renderer.bezierpath import BezierPath
 from DRL.rpm import rpm
 from DRL.actor import *
 from DRL.critic import *
@@ -20,20 +23,10 @@ coord = coord.to(device)
 
 criterion = nn.MSELoss()
 
-Decoder = FCN()
-Decoder.load_state_dict(torch.load('../renderer.pkl'))
-
 def decode(x, canvas): # b * (10 + 3)
     x = x.view(-1, 10 + 3)
-    stroke = 1 - Decoder(x[:, :10])
-    stroke = stroke.view(-1, 128, 128, 1)
-    color_stroke = stroke * x[:, -3:].view(-1, 1, 1, 3)
-    stroke = stroke.permute(0, 3, 1, 2)
-    color_stroke = color_stroke.permute(0, 3, 1, 2)
-    stroke = stroke.view(-1, 5, 1, 128, 128)
-    color_stroke = color_stroke.view(-1, 5, 3, 128, 128)
-    for i in range(5):
-        canvas = canvas * (1 - stroke[:, i]) + color_stroke[:, i]
+    paths = [BezierPath(f) for f in x]
+    canvas, _ = render_paths(paths, canvas)
     return canvas
 
 def cal_trans(s, t):
@@ -213,7 +206,6 @@ class DDPG(object):
         self.critic_target.train()
     
     def choose_device(self):
-        Decoder.to(device)
         self.actor.to(device)
         self.actor_target.to(device)
         self.critic.to(device)
