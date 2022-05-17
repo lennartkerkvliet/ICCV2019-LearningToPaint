@@ -1,37 +1,5 @@
-import torch
+
 import numpy as np
-
-
-def rgb_to_hex(value):
-    rgb = value * 255
-    return "#%02x%02x%02x" % tuple(rgb.astype(int))
-
-def render_paths(paths, canvas, width=128):
-    stroke = 1 - torch.from_numpy(np.array([path.draw() for path in paths]))
-    stroke = stroke.view(-1, width, width, 1)
-
-    colors = np.array([path.color[::-1] for path in paths])
-    color_stroke = stroke * torch.from_numpy(colors).view(-1, 1, 1, 3)
-    stroke = stroke.permute(0, 3, 1, 2)
-    color_stroke = color_stroke.permute(0, 3, 1, 2)
-    stroke = stroke.view(-1, 5, 1, width, width)
-    color_stroke = color_stroke.view(-1, 5, 3, width, width)
-
-    res = []
-    for i in range(5):
-        canvas = canvas * (1 - stroke[:, i]) + color_stroke[:, i]
-        res.append(canvas)
-    return canvas, res
-    
-def render_svg(paths, width=128):
-    svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(width * 2, width * 2)
-    svgstring += "<rect width=\"{}\" height=\"{}\" fill=\"black\"/>".format(width * 2, width * 2)
-
-    for path in paths:
-        svgstring += path.shape_svg()  
-
-    svgstring += "</svg>"
-    return svgstring
 
 def generate_stroke(curve, start_width, end_width, fill="black", opacity=1.0):
     plus = offset_curve(curve, start_width, end_width)
@@ -53,6 +21,7 @@ def orthagonal(vec, flip=False):
     else:
         return np.array([-vec[1], vec[0]])
 
+
 def resize(curve, length=1):
     size = np.linalg.norm(curve)
     if size == 0:
@@ -60,9 +29,9 @@ def resize(curve, length=1):
     return curve / np.linalg.norm(curve) * length
 
 def offset_curve(curve, offset1, offset2):
-    p0 = np.array(curve[0])
-    p1 = np.array(curve[1])
-    p2 = np.array(curve[2])
+    p0 = np.array([curve.x0, curve.y0])
+    p1 = np.array([curve.x1, curve.y1])
+    p2 = np.array([curve.x2, curve.y2])
 
     d0 = np.linalg.norm(p1 - p0)
     d1 = np.linalg.norm(p1 - p2)

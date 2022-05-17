@@ -20,7 +20,7 @@ parser.add_argument('--actor', default='./model/Paint-run1/actor.pkl', type=str,
 parser.add_argument('--renderer', default='./renderer.pkl', type=str, help='renderer model')
 parser.add_argument('--img', default='image/test.png', type=str, help='test image')
 parser.add_argument('--imgid', default=0, type=int, help='set begin number for generated image')
-parser.add_argument('--divide', default=4, type=int, help='divide the target image to get better resolution')
+parser.add_argument('--divide', default=1, type=int, help='divide the target image to get better resolution')
 args = parser.parse_args()
 
 canvas_cnt = args.divide * args.divide
@@ -124,7 +124,7 @@ with torch.no_grad():
 
         paths_res += paths
         svgstring = render_svg(paths_res, width=width)
-        save_svg(svgstring, i)
+        save_svg(svgstring, args.imgid)
 
         for j in range(5):
             save_img(res[j], args.imgid)

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-from Renderer.render import rgb_to_hex
+from .render import rgb_to_hex
+from .stroke import generate_stroke
 from cairosvg import svg2png
 
 
@@ -42,18 +43,19 @@ class BezierPath:
 
     def shape_svg(self):
         color = rgb_to_hex(self.color)
-        tmp = 1. / 100
-        string = ""
+        return generate_stroke(self, self.z0, self.z2, color, max(self.w0, self.w2))
 
-        for i in range(100):
-            t = i * tmp
-            x = (int)((1-t) * (1-t) * self.x0 + 2 * t * (1-t) * self.x1 + t * t * self.x2)
-            y = (int)((1-t) * (1-t) * self.y0 + 2 * t * (1-t) * self.y1 + t * t * self.y2)
-            radius = (int)((1-t) * self.z0 + t * self.z2)
-            opacity = (1-t) * self.w0 + t * self.w2
-            string += "<circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"{}\" fill-opacity=\"{}\"/>".format(y, x, radius, color, opacity)
+    # def split(self, t):
+    #     q0 = self.lerp(start=p0, end=p1, t)
+    #     q1 = self.lerp(start=p1, end=p2, t)
+    #     q2 = self.lerp(start=p2, end=p3, t)
+    #     r0 = self.lerp(start=q0, end=q1, t)
+    #     r1 = self.lerp(start=q1, end=q2, t)
+    #     s  = self.lerp(start=r0, end=r1, t)
+    #     return (BezierPath(p0, q0, r0, s), BezierPath(s, r1, q2, p3))
 
-        return string
+    # def lerp(start, end, t):
+    #     return start * (1.0 - t) + end * t
 
     def draw_svg(self):
         svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(self.width * 2, self.width * 2)
