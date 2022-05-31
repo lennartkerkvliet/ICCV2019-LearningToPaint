@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import Adam, SGD
 from Renderer.model import *
+# from Renderer.bezierpath import BezierPath
 from DRL.rpm import rpm
 from DRL.actor import *
 from DRL.critic import *
@@ -26,6 +27,8 @@ Decoder.load_state_dict(torch.load('../renderer.pkl'))
 def decode(x, canvas): # b * (10 + 3)
     x = x.view(-1, 10 + 3)
     stroke = 1 - Decoder(x[:, :10])
+    # paths = np.array([BezierPath(f[:10], width=128).draw() for f in x])
+    # stroke = 1 - torch.from_numpy(paths)
     stroke = stroke.view(-1, 128, 128, 1)
     color_stroke = stroke * x[:, -3:].view(-1, 1, 1, 3)
     stroke = stroke.permute(0, 3, 1, 2)

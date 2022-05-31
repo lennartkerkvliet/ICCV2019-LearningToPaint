@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils.tensorboard import TensorBoard
 from Renderer.model import FCN
-from Renderer.stroke_gen import *
+from Renderer.bezierpath import BezierPath
 
 writer = TensorBoard("../train_log/")
 import torch.optim as optim
@@ -44,7 +44,7 @@ while step < 500000:
     for i in range(batch_size):
         f = np.random.uniform(0, 1, 10)
         train_batch.append(f)
-        ground_truth.append(draw(f))
+        ground_truth.append(BezierPath(f).draw_svg())
 
     train_batch = torch.tensor(train_batch).float()
     ground_truth = torch.tensor(ground_truth).float()
