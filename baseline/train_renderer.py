@@ -12,16 +12,13 @@ from Renderer.bezierpath import BezierPath
 writer = TensorBoard("../train_log/")
 import torch.optim as optim
 
-criterion = nn.MSELoss()
+
 net = FCN()
-optimizer = optim.Adam(net.parameters(), lr=3e-6)
-batch_size = 64
-
 use_cuda = torch.cuda.is_available()
-step = 0
-
 
 def save_model():
+    global net, use_cuda
+
     if use_cuda:
         net.cpu()
     torch.save(net.state_dict(), "../renderer.pkl")
@@ -30,6 +27,8 @@ def save_model():
 
 
 def load_weights():
+    global net
+
     pretrained_dict = torch.load("../renderer.pkl")
     model_dict = net.state_dict()
     pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
@@ -38,6 +37,13 @@ def load_weights():
 
 
 def train(corner_radius):
+    global net, use_cuda
+
+    step = 0
+    batch_size = 64
+    optimizer = optim.Adam(net.parameters(), lr=3e-6)
+    criterion = nn.MSELoss()
+
     load_weights()
     while step < 500000:
         net.train()
