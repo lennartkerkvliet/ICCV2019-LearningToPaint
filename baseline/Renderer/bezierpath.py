@@ -43,11 +43,14 @@ class BezierPath:
             cv2.circle(canvas, (y, x), radius, color, -1)
         return 1 - cv2.resize(canvas, dsize=(self.width, self.width))
 
-    def draw_svg(self):
+    def draw_svg(self, corner_radius=True):
         # color = rgb_to_hex(self.color)
 
         svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(self.width * 2, self.width * 2)
-        svgstring += generate_stroke(self, self.z0, self.z2, opacity=self.w0, corner_radius=self.w2)
+        if corner_radius:
+            svgstring += generate_stroke(self, self.z0, self.z2, opacity=self.w0, corner_radius=self.w2)
+        else:
+            svgstring += generate_stroke(self, self.z0, self.z2, opacity=max(self.w0, self.w2))
         svgstring += "</svg>"
 
         image = svg2png(bytestring=svgstring, write_to=None)
