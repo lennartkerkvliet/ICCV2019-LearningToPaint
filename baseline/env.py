@@ -33,12 +33,12 @@ class Paint:
         self.test = False
         
     def load_data(self):
-        # CelebA
+        # Iconator dataset
         global train_num, test_num
-        for i in range(200000):
+        for i in range(70000):
             img_id = '%06d' % (i + 1)
             try:
-                img = cv2.imread('../data/img_align_celeba/' + img_id + '.jpg', cv2.IMREAD_UNCHANGED)
+                img = cv2.imread('../data/img_iconator/' + img_id + '.jpg', cv2.IMREAD_UNCHANGED)
                 img = cv2.resize(img, (width, width))
                 if i > 2000:                
                     train_num += 1

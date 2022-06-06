@@ -54,8 +54,8 @@ def train(corner_radius):
             train_batch.append(f)
             ground_truth.append(BezierPath(f).draw_svg(corner_radius))
 
-        train_batch = torch.tensor(train_batch).float()
-        ground_truth = torch.tensor(ground_truth).float()
+        train_batch = torch.tensor(np.array(train_batch)).float()
+        ground_truth = torch.tensor(np.array(ground_truth)).float()
         if use_cuda:
             net = net.cuda()
             train_batch = train_batch.cuda()
