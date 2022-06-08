@@ -74,7 +74,7 @@ class Paint:
             self.gt[i] = torch.tensor(self.pre_data(id, test))
         self.tot_reward = ((self.gt.float() / 255) ** 2).mean(1).mean(1).mean(1)
         self.stepnum = 0
-        self.canvas = torch.zeros([self.batch_size, 3, width, width], dtype=torch.uint8).to(device)
+        self.canvas = torch.full([self.batch_size, 3, width, width], 255, dtype=torch.uint8).to(device)
         self.lastdis = self.ini_dis = self.cal_dis()
         return self.observation()
     
