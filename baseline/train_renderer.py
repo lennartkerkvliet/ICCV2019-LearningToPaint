@@ -91,7 +91,7 @@ def train(corner_radius):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train Renderer')  
-    parser.add_argument('--corner_radius', default=True, type=bool, help='Supports corner radius')
+    parser.add_argument('--corner_radius', default=False, action='store_true', help='Supports corner radius')
     args = parser.parse_args()
 
     train(args.corner_radius)

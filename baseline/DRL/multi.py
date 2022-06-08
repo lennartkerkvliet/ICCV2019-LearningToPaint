@@ -9,11 +9,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class fastenv():
     def __init__(self, 
                  max_episode_length=10, env_batch=64, \
-                 writer=None):
+                 input_dir, writer=None):
         self.max_episode_length = max_episode_length
         self.env_batch = env_batch
         self.env = Paint(self.env_batch, self.max_episode_length)
-        self.env.load_data()
+        self.env.load_data(input_dir)
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
         self.writer = writer
