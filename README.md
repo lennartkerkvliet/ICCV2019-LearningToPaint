@@ -10,6 +10,7 @@ pip install -r requirements.txt
 
 ## Testing
 Make sure to add `renderer.pkl` and `actor.pkl` before testing.
+The Jupyter notebooks were used to generate the results and are not guarenteed to work.
 
 ## Training
 
