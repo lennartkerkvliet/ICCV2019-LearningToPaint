@@ -35,10 +35,11 @@ coord = coord.to(device) # Coordconv
 
 def decode(x, canvas, width=128): # b * (10 + 3)
     x = x.view(-1, 10 + 3)
-    paths = [BezierPath(f[:10], color=f[-3:], width=width) for f in x]
+    paths = [BezierPath(f[:10], color=torch.tensor(f[11]).round().repeat(3), width=width) for f in x]
     stroke = 1 - torch.from_numpy(np.array([path.draw_svg(corner_radius=args.corner_radius) for path in paths]))
     stroke = stroke.view(-1, width, width, 1)
-    color_stroke = stroke * x[:, -3:].view(-1, 1, 1, 3)
+    color = x[:, 11].round().view(-1, 1).repeat_interleave(3, dim=1).view(-1, 1, 1, 3)
+    color_stroke = stroke * color
     stroke = stroke.permute(0, 3, 1, 2)
     color_stroke = color_stroke.permute(0, 3, 1, 2)
     stroke = stroke.view(-1, 5, 1, width, width)

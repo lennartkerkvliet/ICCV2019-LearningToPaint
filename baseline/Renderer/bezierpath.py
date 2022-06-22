@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
-from .stroke_gen import generate_stroke, rgb_to_hex
+from .stroke_gen import generate_stroke
 from cairosvg import svg2png
 
 
 class BezierPath:
-    def __init__(self, f, width=128):
+    def __init__(self, f, color=[0, 0, 0], width=128):
         x0, y0, x1, y1, x2, y2, z0, z2, w0, w2 = f
         # x0, y0, x1, y1, x2, y2, z0, z2, w0, w2, b, g, r = f
         self.width = width
@@ -15,20 +15,21 @@ class BezierPath:
 
         x1 = x0 + (x2 - x0) * x1
         y1 = y0 + (y2 - y0) * y1
-        self.x0 = normal(x0, width * 2)
-        self.x1 = normal(x1, width * 2)
-        self.x2 = normal(x2, width * 2)
-        self.y0 = normal(y0, width * 2)
-        self.y1 = normal(y1, width * 2)
-        self.y2 = normal(y2, width * 2)
-        self.z0 = (int)(1 + z0 * (width // 2))
-        self.z2 = (int)(1 + z2 * (width // 2))
+        self.x0 = normal(x0, width)
+        self.x1 = normal(x1, width)
+        self.x2 = normal(x2, width)
+        self.y0 = normal(y0, width)
+        self.y1 = normal(y1, width)
+        self.y2 = normal(y2, width)
+        self.z0 = (int)(1 + z0 * (width // 4))
+        self.z2 = (int)(1 + z2 * (width // 4))
         self.w0 = (float)(w0)
         self.w2 = (float)(w2)
 
         self.w0 = (float)(w0)
         self.w2 = (float)(w2)
-        # self.color = np.array([r, g, b]).astype('float32')
+
+        self.color = np.flip(np.array(color)).astype('float32')
 
     def draw_opencv(self):
         canvas = np.zeros([self.width * 2, self.width * 2]).astype('float32')
@@ -46,7 +47,7 @@ class BezierPath:
     def draw_svg(self, corner_radius=True):
         # color = rgb_to_hex(self.color)
 
-        svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(self.width * 2, self.width * 2)
+        svgstring = "<svg viewBox=\"0 0 {} {}\" xmlns=\"http://www.w3.org/2000/svg\">".format(self.width, self.width)
         if corner_radius:
             svgstring += generate_stroke(self, self.z0, self.z2, opacity=self.w0, corner_radius=self.w2)
         else:
@@ -58,4 +59,4 @@ class BezierPath:
         canvas = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
 
         adjusted = canvas[:,:,3].astype('float32') / 255
-        return 1 - cv2.resize(adjusted, dsize=(self.width, self.width))
+        return 1 - adjusted

@@ -1,10 +1,6 @@
 import numpy as np
 
 
-def rgb_to_hex(value):
-    rgb = value * 255
-    return "#%02x%02x%02x" % tuple(rgb.astype(int))
-
 def generate_stroke(curve, start_width, end_width, fill="black", opacity=1.0, corner_radius=1.0):
     if curve.y0 == curve.y1 == curve.y2 and curve.x0 == curve.x1 == curve.x2:
         return "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"/>".format(curve.y0, curve.x0, max(start_width, end_width))
